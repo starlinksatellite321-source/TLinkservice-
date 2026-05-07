@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>ISP Admin Panel</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #0b1220, #05070f 60%);
+      color: #ffffff;
+    }
+
+    .top-note {
+      padding: 10px;
+      text-align: center;
+      background: rgba(77,163,255,0.08);
+      border-bottom: 1px solid rgba(77,163,255,0.15);
+      color: #9ed0ff;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+
+    .header {
+      padding: 18px 25px;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 20px rgba(77,163,255,0.08);
+    }
+
+    .admin-info {
+      color: #7ec3ff;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .panel {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(77,163,255,0.12);
+      border-radius: 18px;
+      padding: 18px;
+      overflow-y: auto;
+      max-height: 90vh;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 18px rgba(77,163,255,0.08);
+    }
+
+    .title {
+      color: #7ec3ff;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+      font-weight: bold;
+    }
+
+    .client-item {
+      padding: 14px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .client-item:hover {
+      background: rgba(77,163,255,0.08);
+      transform: translateY(-2px);
+      box-shadow: 0 0 15px rgba(77,163,255,0.12);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 12px;
+      border-radius: 10px;
+      border: none;
+      background: rgba(255,255,255,0.06);
+      color: white;
+      outline: none;
+    }
+
+    select option {
+      background: #111827;
+      color: white;
+    }
+
+    button {
+      margin-top: 10px;
+      background: linear-gradient(135deg, #4da3ff, #1f7cff);
+      border: none;
+      padding: 10px 15px;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(77,163,255,0.2);
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .approve-btn {
+      background: linear-gradient(135deg, #00c853, #009624);
+    }
+
+    .reject-btn {
+      background: linear-gradient(135deg, #ff3b3b, #c40000);
+    }
+
+    .history {
+      background: rgba(255,255,255,0.04);
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 10px;
+      border-left: 3px solid #4da3ff;
+      font-size: 13px;
+    }
+
+    .pending-box {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 14px;
+      background: rgba(255,165,0,0.08);
+      border: 1px solid rgba(255,165,0,0.2);
+      box-shadow: 0 0 18px rgba(255,165,0,0.08);
+    }
+
+    hr {
+      border: 1px solid rgba(255,255,255,0.06);
+      margin: 20px 0;
+    }
+
+    .status-active {
+      color: #00ff95;
+    }
+
+    .status-suspended {
+      color: #ff5252;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div class="top-note">
+  ⚡ ISP ADMIN CONTROL CENTER • Pending plan requests require approval
+</div>
+
+<div class="header">
+  <div class="admin-info">
+    👨‍💻 Admin: Starlink Satellite<br>
+    📧 starlinksatellite321@gmail.com
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- CLIENT LIST -->
+  <div class="panel">
+    <div class="title">Clients</div>
+    <div id="clientList">Loading...</div>
+  </div>
+
+  <!-- CLIENT MANAGEMENT -->
+  <div class="panel">
+    <div class="title">Client Management</div>
+    <div id="clientDetails">Select a client</div>
+  </div>
+
+</div>
+
+<script type="module">
+
+import { auth, db } from "./firebase.js";
+
+import {
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import {
+  collection,
+  getDocs,
+  doc,
+  getDoc,
+  updateDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+let selectedUserId = null;
+let users = {};
+
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  const ref = doc(db, "users", user.uid);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists() || snap.data().role !== "admin") {
+    alert("Access denied");
+    window.location.href = "dashboard.html";
+    return;
+  }
+
+  loadClients();
+
+});
+
+async function loadClients() {
+
+  const snap = await getDocs(collection(db, "users"));
+
+  const clientList = document.getElementById("clientList");
+  clientList.innerHTML = "";
+
+  snap.forEach(docSnap => {
+
+    const user = docSnap.data();
+    users[docSnap.id] = user;
+
+    const div = document.createElement("div");
+    div.className = "client-item";
+
+    div.innerHTML = `
+      <b>${user.name}</b><br>
+      <small>${user.email}</small><br>
+      <small>${user.plan || "No Plan"}</small><br>
+      <small class="${user.status === "active" ? "status-active" : "status-suspended"}">
+        ● ${user.status || "unknown"}
+      </small>
+    `;
+
+    div.onclick = () => selectClient(docSnap.id);
+
+    clientList.appendChild(div);
+
+  });
+
+}
+
+window.selectClient = function(uid) {
+
+  selectedUserId = uid;
+
+  const user = users[uid];
+
+  document.getElementById("clientDetails").innerHTML = `
+
+    <div class="title">${user.name}</div>
+    <small>${user.email}</small>
+
+    <hr>
+
+    <label>Plan</label>
+    <select id="plan">
+      <option ${user.plan === "Low Speed" ? "selected" : ""}>Low Speed</option>
+      <option ${user.plan === "Standard" ? "selected" : ""}>Standard</option>
+      <option ${user.plan === "Priority" ? "selected" : ""}>Priority</option>
+    </select>
+
+    <label>Current Bill</label>
+    <input type="number" id="bill" value="${user.currentBill || 0}">
+
+    <label>Status</label>
+    <select id="status">
+      <option ${user.status === "active" ? "selected" : ""}>active</option>
+      <option ${user.status === "suspended" ? "selected" : ""}>suspended</option>
+    </select>
+
+    <!-- ✅ ADDED INSIDE UPDATE CLIENT ONLY -->
+    <label>Billing Date</label>
+    <input type="text" id="billingDate" value="${user.billingDate || ''}" placeholder="e.g. June 1, 2026">
+
+    <label>Announcement</label>
+    <input type="text" id="announcement" value="${user.announcement || ''}" placeholder="Message for client">
+
+    <button onclick="updateClient()">Update Client</button>
+
+    ${
+      user.planStatus === "pending"
+      ? `
+      <div class="pending-box">
+        <div class="title">Pending Plan Request</div>
+        Requested Plan: <b>${user.requestedPlan}</b>
+
+        <br><br>
+
+        <button class="approve-btn" onclick="approvePlan()">Approve</button>
+        <button class="reject-btn" onclick="rejectPlan()">Reject</button>
+      </div>
+      `
+      : ""
+    }
+
+  `;
+
+};
+
+window.updateClient = async function() {
+
+  const plan = document.getElementById("plan").value;
+  const bill = document.getElementById("bill").value;
+  const status = document.getElementById("status").value;
+  const billingDate = document.getElementById("billingDate").value;
+  const announcement = document.getElementById("announcement").value;
+
+  await updateDoc(doc(db, "users", selectedUserId), {
+    plan,
+    currentBill: Number(bill),
+    status,
+    billingDate: billingDate || "",
+    announcement: announcement || ""
+  });
+
+  alert("Client updated!");
+
+};
+
+window.approvePlan = async function() {
+
+  const user = users[selectedUserId];
+
+  await updateDoc(doc(db, "users", selectedUserId), {
+    plan: user.requestedPlan,
+    requestedPlan: "",
+    planStatus: "approved"
+  });
+
+  alert("Plan approved!");
+  loadClients();
+  selectClient(selectedUserId);
+
+};
+
+window.rejectPlan = async function() {
+
+  await updateDoc(doc(db, "users", selectedUserId), {
+    requestedPlan: "",
+    planStatus: "rejected"
+  });
+
+  alert("Plan rejected!");
+  loadClients();
+  selectClient(selectedUserId);
+
+};
+
+</script>
+
+</body>
+</html>

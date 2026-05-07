@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Satellite Internet Login</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      height: 100vh;
+      overflow: hidden;
+      background: radial-gradient(circle at top, #1b2a4a, #0b0f19);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .glow {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(77,163,255,0.3), transparent 60%);
+      animation: move 6s infinite alternate;
+      filter: blur(40px);
+    }
+
+    @keyframes move {
+      from { transform: translate(-100px, -100px); }
+      to { transform: translate(100px, 100px); }
+    }
+
+    .box {
+      position: relative;
+      width: 420px;
+      padding: 30px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 18px;
+      backdrop-filter: blur(12px);
+      text-align: center;
+      z-index: 2;
+      box-shadow: 0 0 25px rgba(77,163,255,0.2);
+    }
+
+    h1 {
+      margin-bottom: 5px;
+      color: #4da3ff;
+      letter-spacing: 2px;
+    }
+
+    p {
+      font-size: 13px;
+      opacity: 0.8;
+      margin-bottom: 15px;
+    }
+
+    .info {
+      text-align: left;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      font-size: 13px;
+    }
+
+    .price {
+      color: #4da3ff;
+      font-weight: bold;
+    }
+
+    button {
+      margin-top: 12px;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .google-btn {
+      background: white;
+      color: black;
+    }
+
+    .google-btn:hover {
+      background: #4da3ff;
+      color: white;
+      transform: scale(1.03);
+    }
+
+    /* 🔥 ADMIN BUTTON */
+    .admin-btn {
+      background: linear-gradient(135deg, #ff3b3b, #ff8c00);
+      color: white;
+    }
+
+    .admin-btn:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 15px rgba(255,80,80,0.6);
+    }
+
+    .footer {
+      margin-top: 10px;
+      font-size: 11px;
+      opacity: 0.6;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div class="glow"></div>
+
+<div class="box">
+
+  <h1>🚀 Satellite Internet</h1>
+  <p>Fast. Stable. Global connectivity powered by TLinkService</p>
+
+  <div class="info">
+    <b>Low Speed</b> <span class="price">₱344</span><br>
+    Basic browsing, social media, light usage.
+  </div>
+
+  <div class="info">
+    <b>Standard</b> <span class="price">₱1599</span><br>
+    HD streaming, meetings, stable connection.
+  </div>
+
+  <div class="info">
+    <b>Priority</b> <span class="price">₱1999</span><br>
+    Gaming, heavy streaming, priority bandwidth.
+  </div>
+
+  <button class="google-btn" id="googleLogin">Sign in with Google</button>
+
+  <!-- 🔥 ADMIN BUTTON ADDED -->
+  <button class="admin-btn" id="adminLogin">Admin Access</button>
+
+  <div class="footer">
+    Secure access powered by Firebase • TLinkService Network
+  </div>
+
+</div>
+
+<script type="module">
+
+import { auth, provider, db } from "./firebase.js";
+import { signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* =========================
+   USER LOGIN
+========================= */
+document.getElementById("googleLogin").onclick = async () => {
+
+  const result = await signInWithPopup(auth, provider);
+  const user = result.user;
+
+  const ref = doc(db, "users", user.uid);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+
+    await setDoc(ref, {
+      uid: user.uid,
+      name: user.displayName,
+      email: user.email,
+
+      role: "client",
+      status: "active",
+
+      plan: "None",
+      planStatus: "none",
+      requestedPlan: "",
+
+      currentBill: 0,
+      payments: []
+    });
+
+  }
+
+  window.location.href = "dashboard.html";
+
+};
+
+
+/* =========================
+   ADMIN LOGIN (SAFE CHECK)
+========================= */
+
+const ADMIN_EMAILS = [
+  "starlinksatellite321@gmail.com"
+];
+
+document.getElementById("adminLogin").onclick = async () => {
+
+  const result = await signInWithPopup(auth, provider);
+  const user = result.user;
+
+  if (!ADMIN_EMAILS.includes(user.email)) {
+    alert("Access denied. Not an admin account.");
+    return;
+  }
+
+  const ref = doc(db, "users", user.uid);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      uid: user.uid,
+      name: user.displayName,
+      email: user.email,
+      role: "admin"
+    });
+  }
+
+  window.location.href = "admin.html";
+
+};
+
+</script>
+
+</body>
+</html>

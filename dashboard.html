@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Dashboard</title>
+
+  <style>
+
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: #000;
+      color: white;
+    }
+
+    .header {
+      padding: 20px;
+      text-align: center;
+      font-size: 34px;
+      font-weight: bold;
+    }
+
+    .sub {
+      font-size: 12px;
+      color: gray;
+      margin-top: 5px;
+    }
+
+    .announcement {
+      width: 100%;
+      background: #1f1f1f;
+      color: white;
+      padding: 12px 15px;
+      text-align: center;
+      font-size: 14px;
+      border-top: 1px solid #333;
+      border-bottom: 1px solid #333;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: auto;
+      padding: 15px;
+      box-sizing: border-box;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: #181818;
+      border-radius: 18px;
+      padding: 22px;
+      box-sizing: border-box;
+    }
+
+    .small-title {
+      color: #cfcfcf;
+      font-size: 15px;
+      margin-bottom: 10px;
+    }
+
+    .bill {
+      font-size: clamp(40px, 6vw, 55px);
+      font-weight: bold;
+    }
+
+    .green {
+      color: lime;
+      font-size: 28px;
+    }
+
+    .red {
+      color: red;
+      font-size: 28px;
+    }
+
+    .next-bill {
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .desc {
+      color: #c7c7c7;
+      margin-top: 20px;
+      line-height: 1.5;
+      font-size: 15px;
+    }
+
+    .pay-btn,
+    .invoice-btn,
+    .plan-btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+
+    .pay-btn {
+      background: #3a3a3a;
+      color: white;
+      margin-top: 18px;
+    }
+
+    .invoice-btn {
+      background: #2a2a2a;
+      color: white;
+      margin-top: 18px;
+    }
+
+    .plan-btn {
+      background: #222;
+      color: white;
+      margin-top: 10px;
+      text-align: left;
+    }
+
+    .plan-btn:hover {
+      background: #333;
+    }
+
+    .line {
+      width: 100%;
+      height: 5px;
+      background: #2f2f2f;
+      border-radius: 10px;
+      margin-top: 15px;
+      overflow: hidden;
+    }
+
+    .line-fill {
+      width: 30%;
+      height: 100%;
+      background: white;
+    }
+
+    .dates {
+      display: flex;
+      justify-content: space-between;
+      color: gray;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      padding: 18px;
+      border-radius: 18px;
+      background: #111;
+    }
+
+    .item-left {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .icon {
+      font-size: 26px;
+    }
+
+    .item-title {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .item-sub {
+      color: gray;
+      margin-top: 4px;
+      font-size: 14px;
+    }
+
+    .arrow {
+      color: gray;
+      font-size: 20px;
+    }
+
+    .plans {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .pending {
+      color: orange;
+    }
+
+    .approved {
+      color: lime;
+    }
+
+    .plan-preview {
+      margin-top: 15px;
+      padding: 12px;
+      background: #111;
+      border-radius: 12px;
+      font-size: 14px;
+      color: #cfcfcf;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div class="header">
+  Billing
+  <div class="sub">ACC-DF-13068339-56614-51</div>
+</div>
+
+<div class="announcement" id="announcementBar">
+  No announcement yet
+</div>
+
+<div class="container">
+
+  <div class="card">
+
+    <div class="small-title">Balance due</div>
+
+    <div class="bill">
+      ₱<span id="bill">0</span>
+      <span id="billStatus"></span>
+    </div>
+
+    <button class="pay-btn" onclick="window.location.href='contact.html'">
+      Pay balance
+    </button>
+
+  </div>
+
+  <div class="card">
+
+    <div class="small-title">Next bill</div>
+
+    <div class="next-bill" id="billingDateText">June 1</div>
+
+    <div class="line">
+      <div class="line-fill"></div>
+    </div>
+
+    <div class="dates">
+      <span>May 1</span>
+      <span>June 1</span>
+    </div>
+
+    <div class="desc">
+      Your saved payment method will be charged automatically on the billing date.
+    </div>
+
+    <button class="invoice-btn">
+      Preview next invoice
+    </button>
+
+  </div>
+
+  <div class="item" onclick="window.location.href='contact.html'" style="cursor:pointer;">
+    <div class="item-left">
+      <div class="icon">🏦</div>
+      <div>
+        <div class="item-title">Payment method</div>
+        <div class="item-sub">Contact support for payment</div>
+      </div>
+    </div>
+    <div class="arrow">↗</div>
+  </div>
+
+  <div class="item">
+    <div class="item-left">
+      <div class="icon">📡</div>
+      <div>
+        <div class="item-title">Current Plan</div>
+        <div class="item-sub" id="plan"></div>
+        <div class="item-sub" id="planDetails"></div>
+      </div>
+    </div>
+    <div class="arrow">›</div>
+  </div>
+
+  <div class="item">
+    <div class="item-left">
+      <div class="icon">💳</div>
+      <div>
+        <div class="item-title">Payments</div>
+        <div class="item-sub" id="status"></div>
+      </div>
+    </div>
+    <div class="arrow">›</div>
+  </div>
+
+  <div class="card">
+
+    <div class="item-title">Subscription Plans</div>
+
+    <div class="plans">
+
+      <button class="plan-btn" onclick="selectPlan('Low Speed')">
+        Low Speed - ₱499
+      </button>
+
+      <button class="plan-btn" onclick="selectPlan('Standard')">
+        Standard - ₱999
+      </button>
+
+      <button class="plan-btn" onclick="selectPlan('Priority')">
+        Priority - ₱1499
+      </button>
+
+    </div>
+
+    <div id="planPreview" class="plan-preview">
+      Select a plan to view details
+    </div>
+
+  </div>
+
+</div>
+
+<script type="module">
+
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+let uid = null;
+let selectedPlan = null;
+
+const plans = {
+  "Low Speed": { price: "₱499", details: "Basic browsing & social media" },
+  "Standard": { price: "₱999", details: "HD streaming & stable connection" },
+  "Priority": { price: "₱1499", details: "Ultra-fast gaming & priority access" }
+};
+
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) location.href = "login.html";
+
+  uid = user.uid;
+
+  const snap = await getDoc(doc(db, "users", uid));
+  const data = snap.data();
+
+  document.getElementById("bill").innerText = data.currentBill || 0;
+
+  document.getElementById("status").innerHTML =
+    `<span style="color:${data.status === 'active' ? 'lime' : 'red'}">${data.status}</span>`;
+
+  if (data.billingDate) {
+    document.getElementById("billingDateText").innerText = data.billingDate;
+  }
+
+  document.getElementById("plan").innerText =
+    data.plan ? `Plan: ${data.plan}` : "No plan";
+
+  document.getElementById("planDetails").innerText =
+    data.plan && plans[data.plan] ? plans[data.plan].details : "";
+
+  // ✅ FIXED ANNOUNCEMENT (matches admin)
+  document.getElementById("announcementBar").innerText =
+    (data.announcement && data.announcement.trim() !== "")
+      ? data.announcement
+      : "No announcement yet";
+
+});
+
+window.selectPlan = function(plan) {
+
+  selectedPlan = plan;
+
+  const p = plans[plan];
+
+  document.getElementById("planPreview").innerHTML = `
+    <b>${plan}</b><br>
+    ${p.details}<br>
+    <b>${p.price}</b><br><br>
+
+    <button onclick="requestPlanChange()"
+      style="width:100%;padding:12px;border:none;border-radius:10px;background:#3a3a3a;color:white;">
+      Request Change
+    </button>
+
+    <br><br>
+    <span style="color:orange;">⏳ Waiting for approval after request</span>
+  `;
+};
+
+window.requestPlanChange = async function() {
+
+  if (!selectedPlan) return;
+
+  await updateDoc(doc(db, "users", uid), {
+    requestedPlan: selectedPlan,
+    planStatus: "pending"
+  });
+
+  document.getElementById("planPreview").innerHTML = `
+    <b>${selectedPlan}</b><br>
+    Request sent successfully.<br>
+    <span style="color:orange;">⏳ Waiting for admin approval</span>
+  `;
+
+  alert("Plan request sent!");
+};
+
+</script>
+
+</body>
+</html>
